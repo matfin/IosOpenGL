@@ -16,7 +16,7 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    self.glView = [[OpenGLView alloc] initWithFrame:screenBounds];
+    self.glView = [[[OpenGLView alloc] initWithFrame:screenBounds] autorelease];
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.viewController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
@@ -51,6 +51,11 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+- (void)dealloc{
+    [_glView release];
+    [super dealloc];
 }
 
 @end
