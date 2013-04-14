@@ -21,10 +21,10 @@ typedef struct {
 } Vertex;
 
 const Vertex Vertices[] = {
-    {{1, -1, -7}, {1, 0, 0, 1}},
-    {{1, 1, -7}, {0, 1, 0, 1}},
-    {{-1, 1, -7}, {0, 0, 1, 1}},
-    {{-1, -1, -7}, {0, 0, 0, 1}}
+    {{1, -1, 0}, {1, 0, 0, 1}},
+    {{1, 1, 0}, {0, 1, 0, 1}},
+    {{-1, 1, 0}, {0, 0, 1, 1}},
+    {{-1, -1, 0}, {0, 0, 0, 1}}
 };
 
 const GLubyte Indices[] = {
@@ -64,7 +64,7 @@ const GLubyte Indices[] = {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorRenderBuffer);
 }
 
-- (void)render {
+- (void)render:(CADisplayLink *)displayLink {
     glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -73,6 +73,10 @@ const GLubyte Indices[] = {
     float h = 4.0f * self.frame.size.height / self.frame.size.width;
     [projection populateFromFrustumLeft:-2 andRight:2 andBottom:-h/2 andTop:h/2 andNear:4 andFar:10];
     glUniformMatrix4fv(_projectionUniform, 1, 0, projection.glMatrix);
+    
+    CC3GLMatrix *modelView = [CC3GLMatrix matrix];
+    [modelView populateFromTranslation:CC3VectorMake(sin(CACurrentMediaTime()), 0, -7)];
+    glUniformMatrix4fv(_modelViewUniform, 1, 0, modelView.glMatrix);
     
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
     
@@ -140,6 +144,7 @@ const GLubyte Indices[] = {
     glEnableVertexAttribArray(_positionSlot);
     glEnableVertexAttribArray(_colorSlot);
     _projectionUniform = glGetUniformLocation(programHandle, "Projection");
+    _modelViewUniform = glGetUniformLocation(programHandle, "ModelView");
 }
 
 - (void)setupVBOs {
@@ -154,6 +159,11 @@ const GLubyte Indices[] = {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 }
 
+- (void)setUpDisplayLink {
+    CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(render:)];
+    [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+}
+
 - (id)initWithFrame:(CGRect)frame
 {
     NSLog(@"Did we init the frame for the OpenGL View?");
@@ -165,7 +175,7 @@ const GLubyte Indices[] = {
         [self setupFrameBuffer];
         [self compileShaders];
         [self setupVBOs];
-        [self render];
+        [self setUpDisplayLink];
     }
     return self;
 }
